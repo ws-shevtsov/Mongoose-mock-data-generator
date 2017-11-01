@@ -8,6 +8,7 @@ Mongoose Schema - Mock Data Generator
 
 Example:
 
+```javascript
 const generator = require('generator');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
@@ -47,6 +48,7 @@ generator(test.schema.tree, 2)
 	.then(result => {
 		// do somthing
 	})
+```
 
 # Contributions are welcomed.
 
