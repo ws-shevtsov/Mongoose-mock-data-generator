@@ -4,8 +4,7 @@
   "description": "Mongoose Schema - Mock Data Generator",
   "main": "index.js",
   "dependencies": {
-    "mongoose": "3.8.8",
-    "optimist": "0.6.1"
+    "mongoose": "3.8.8"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,7 +23,7 @@
   "author": "Valtid Caushi",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/valtido/generator/issues"
+    "url": "https://github.com/ws-shevtsov/generator/issues"
   },
-  "homepage": "https://github.com/valtido/generator"
+  "homepage": "https://github.com/ws-shevtsov/generator"
 }
