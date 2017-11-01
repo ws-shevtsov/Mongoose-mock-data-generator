@@ -45,7 +45,6 @@ module.exports = function (mainSchema, num) {
 		return Promise.resolve()
 			.then(() => {
 				let name;
-				console.log('test something', something);
 				if (!something) {
 					return something;
 				}
@@ -54,10 +53,8 @@ module.exports = function (mainSchema, num) {
 				} else if (something.type !== undefined && something.type.name) {
 					name = something.type.name;
 				} else if (something instanceof Array) {
-					console.log('initArray');
 					return initArray(something);
 				} else if (typeof something === 'object' && something instanceof Object === true) {
-					console.log('initObject');
 					return initObject(something);
 				} else {
 					console.log(something.length, typeof something, something instanceof Object);
@@ -67,7 +64,6 @@ module.exports = function (mainSchema, num) {
 				}
 				if (gen[ name ] !== undefined) {
 					let simple = gen[ name ]();
-					console.log('test simple', simple);
 					return simple;
 				}
 				return 'type_not_found: ' + something;
