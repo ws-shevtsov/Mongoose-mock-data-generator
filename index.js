@@ -1,44 +1,167 @@
-#!/usr/bin/env node
-var 
-  g    = require('./generator.js')
-, fs	 = require('fs')
-, argv = require('optimist')
-				.usage("Generate some mock data.")
-				.default({
-					'o': 'mocked-'+Math.random().toString().split('.')[1]+'.json',
-					'r': 10,
-					't': 2,
-					'p': true
-				})
-				.demand('s')
-				.alias('t','tabsize')
-				.alias('s','schema')
-				.alias('o','output')
-				.alias('r','records')
-				.alias('p','pretty')
-				.describe('s','Use a file e.g: models/sample.js')
-				.describe('o','Output file, prefixed with "output/", & random filename as default.')
-				.describe('r','Number of records to print!')
-				.describe('p','Pretty print output')
-				.describe('t','Tab size if pretty print.')
-				.string('s')
-				.string('o')
-				.boolean('p')
-				.argv
-;
+module.exports = function (mainSchema, num) {
+	const mongoose = require('mongoose');
+	const exc = [ '_id', 'id', '__v' ];
 
+	let randomDate = (start, end) => {
+		if (start === undefined) {
+			start = new Date(1970);
+		}
+		if (end === undefined) {
+			end = new Date();
+		}
+		return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+	};
 
-var output  = '/output/'+argv.o
-var s       = require('./'+argv.s).schema.tree;
+	let gen = {
+		objectid : function () {
+			return mongoose.Types.ObjectId();
+		},
+		date : function () {
+			return randomDate().toString();
+		},
+		boolean : function () {
+			return (Math.random() < 0.5);
+		},
+		bool : function () {
+			return (Math.random() < 0.5);
+		},
+		number : function () {
+			return Number(
+				Math.random()
+					.toString()
+					.split('.')[ 1 ]);
+		},
+		string : function () {
+			return Math.random()
+				.toString(36)
+				.replace(/[^a-z]+/g, '');
+		},
+		array : function () {
+			return new Array(num);
+		}
+	};
 
-var mocked  = g(s,argv.r);
+	let get = something => {
+		return Promise.resolve()
+			.then(() => {
+				let name;
+				console.log('test something', something);
+				if (!something) {
+					return something;
+				}
+				if (something.name !== undefined) {
+					name = something.name;
+				} else if (something.type !== undefined && something.type.name) {
+					name = something.type.name;
+				} else if (something instanceof Array) {
+					console.log('initArray');
+					return initArray(something);
+				} else if (typeof something === 'object' && something instanceof Object === true) {
+					console.log('initObject');
+					return initObject(something);
+				} else {
+					console.log(something.length, typeof something, something instanceof Object);
+				}
+				if (name !== undefined) {
+					name = name.toString().toLowerCase();
+				}
+				if (gen[ name ] !== undefined) {
+					let simple = gen[ name ]();
+					console.log('test simple', simple);
+					return simple;
+				}
+				return 'type_not_found: ' + something;
+			});
+	};
 
-var x = new Array(argv.t).join(" ");
+	let initObject = schema => {
+		let obj = {};
+		let promises = Object.keys(schema).map(prop => {
+			if (exc.indexOf(prop) !== -1) {
+				return null;
+			}
+			return get(schema[ prop ])
+				.then(result => {
+					obj[ prop ] = result;
+					return null;
+				});
+		});
+		return Promise.all(promises)
+			.then(() => {
+				return obj;
+			});
+	};
 
-var data = argv.p  == false ? JSON.stringify(mocked) : JSON.stringify(mocked,null, x ) ;
+	let initArray = schema => {
+		let promises = Array.apply(null, { length: num }).map(() => {
+			if (schema[ 0 ]) {
+				return get(schema[ 0 ]);
+			} else {
+				return 'missing schema';
+			}
+		});
+		return Promise.all(promises)
+			.then(results => {
+				return results.filter(result => {
+					return result !== 'missing schema';
+				});
+			});
+	};
 
+	let initSchema = schema => {
+		let promises = Array.apply(null, { length: num })
+			.map(() => {
+				if (schema) {
+					return get(schema);
+				} else {
+					return 'missing schema';
+				}
+			});
+		return Promise.all(promises)
+			.then(results => {
+				return results.filter(result => {
+					return result !== 'missing schema';
+				});
+			});
+	};
 
-fs.writeFile(__dirname + output, data, function (err) {
-  if (err) return console.log(err);
-  console.log("Successfully wrote data to: ", output);
-});
+	let checkSchema = schema => {
+		return Promise.resolve()
+			.then(() => {
+				if (!schema) {
+					return Promise.reject('invalid schema');
+				} else if ((typeof schema === 'object' &&
+					schema instanceof Object === true &&
+					Object.keys(schema).length) ||
+					(schema instanceof Array &&
+					schema.length)) {
+					return initSchema(schema);
+				} else {
+					return Promise.reject('invalid schema');
+				}
+			});
+	};
+
+	let checkNum = schema => {
+		return new Promise((resolve) => {
+			if (num &&
+				!isNaN(num) &&
+				num > 0) {
+				return resolve(num);
+			} else {
+				return resolve(Math.round(Math.random() * 10));
+			}
+		})
+			.then(newNum => {
+				num = newNum;
+				return schema;
+			});
+	};
+
+	let mainInit = schema => {
+		return checkNum(schema)
+			.then(checkSchema);
+	};
+
+	return mainInit(mainSchema);// start init
+};

@@ -4,33 +4,51 @@ generator
 Mongoose Schema - Mock Data Generator
 
 
-# Generating data
-	
-If you do not know how the command (below) works, try and install nodejs,
-try to run the following code on the CLI (comand line interface) works with "Git Bash"
+# This version generate data via promise directly to js array
 
-	 node index.js -s models/samples.js
+Example:
 
-This should output a file on the "/output" folder "mock-[xxxx].json"
+const generator = require('generator');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+let schema =  new Schema({
+	string  : String,
+	date    : Date,
+	number  : Number,
+	boolean : Boolean,
+	array   : [],
+	object  : {
+		string  : String,
+		date    : Date,
+		number  : Number,
+		boolean : Boolean
+	},
+	stringArray : [
+		String
+	],
+	dateArray : [
+		Date
+	],
+	numberArray : [
+		Number
+	],
+	booleanArray : [
+		Boolean
+	],
+	objectArray : [
+		{
+			prop : String
+		}
+	]
+});
+let test = mongoose.model('test', schema);
 
-#  Explaination
-
-node = run node, 
-
-index.js = run the index.js file (with or without arguments)
-
-# Args
-
-Generate some mock data.
-
-	Options:
-		-s, --schema   Use a file e.g: models/sample.js      [required]
-		-o, --output   Output file,                          [default: "mocked-xxxxxxx.json"]
-		-r, --records  Number of records to print!           [default: 10]
-		-p, --pretty   Pretty print output                   [default: true]
-		-t, --tabsize  Tab size if pretty print.             [default: 2]
+generator(test.schema.tree, 2)
+	.then(result => {
+		// do somthing
+	})
 
 # Contributions are welcomed.
 
-This script is very minimalistic, if you like it, or wish to help and get involved suggestions are 
+This script is very minimalistic, if you like it, or wish to help and get involved suggestions are
 welcomed at the issues page https://github.com/valtido/generator/issues
