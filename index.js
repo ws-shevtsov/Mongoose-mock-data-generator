@@ -42,47 +42,65 @@ module.exports = function (mainSchema, num) {
 	};
 
 	let get = something => {
-		return Promise.resolve()
-			.then(() => {
+		return new Promise((resolve, reject) => {
+			try {
 				let name;
 				if (!something) {
-					return something;
-				}
-				if (something.name !== undefined) {
-					name = something.name;
-				} else if (something.type !== undefined && something.type.name) {
-					name = something.type.name;
-				} else if (something instanceof Array) {
-					return initArray(something);
-				} else if (typeof something === 'object' && something instanceof Object === true) {
-					return initObject(something);
+					return resolve(something);
 				} else {
-					console.log(something.length, typeof something, something instanceof Object);
+					if (something.type !== undefined && something.type.name) {
+						name = something.type.name;
+					} else if (something instanceof Array) {
+						return resolve(initArray(something));
+					} else if (typeof something === 'object' && something instanceof Object && !Object.keys(something).length) {
+						return resolve('missing schema');
+					} else if (typeof something === 'object' && something instanceof Object) {
+						return resolve(initObject(something));
+					} else if (something.name !== undefined) {
+						name = something.name;
+					} else {
+						console.log('generator - missing type:', typeof something);
+					}
+					if (name !== undefined) {
+						name = name.toString().toLowerCase();
+					}
+					if (gen[ name ] !== undefined) {
+						return resolve(gen[ name ]());
+					} else {
+						return resolve('type_not_found: ' + something);
+					}
 				}
-				if (name !== undefined) {
-					name = name.toString().toLowerCase();
-				}
-				if (gen[ name ] !== undefined) {
-					let simple = gen[ name ]();
-					return simple;
-				}
-				return 'type_not_found: ' + something;
-			});
+			} catch (error) {
+				return reject(error);
+			}
+		});
+		// return Promise.resolve()
+		// 	.then();
 	};
 
 	let initObject = schema => {
 		let obj = {};
-		let promises = Object.keys(schema).map(prop => {
-			if (exc.indexOf(prop) !== -1) {
-				return null;
-			}
-			return get(schema[ prop ])
-				.then(result => {
-					obj[ prop ] = result;
+		return Promise.resolve()
+			.then(() => {
+				let keys = Object.keys(schema);
+				if (keys && keys.length) {
+					let promises = keys.map(prop => {
+						if (exc.indexOf(prop) !== -1) {
+							return null;
+						}
+						return get(schema[ prop ])
+							.then(result => {
+								if (result !== 'missing schema') {
+									obj[ prop ] = result;
+								}
+								return null;
+							});
+					});
+					return Promise.all(promises);
+				} else {
 					return null;
-				});
-		});
-		return Promise.all(promises)
+				}
+			})
 			.then(() => {
 				return obj;
 			});
