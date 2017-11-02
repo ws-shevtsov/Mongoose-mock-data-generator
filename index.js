@@ -17,7 +17,7 @@ module.exports = function (mainSchema, num) {
 			return mongoose.Types.ObjectId();
 		},
 		date : function () {
-			return randomDate().toString();
+			return randomDate().toISOString();
 		},
 		boolean : function () {
 			return (Math.random() < 0.5);
