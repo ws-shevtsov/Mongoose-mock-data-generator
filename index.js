@@ -74,8 +74,6 @@ module.exports = function (mainSchema, num) {
 				return reject(error);
 			}
 		});
-		// return Promise.resolve()
-		// 	.then();
 	};
 
 	let initObject = schema => {
