@@ -49,8 +49,3 @@ generator(test.schema.tree, 2)
 		// do somthing
 	})
 ```
-
-# Contributions are welcomed.
-
-This script is very minimalistic, if you like it, or wish to help and get involved suggestions are
-welcomed at the issues page https://github.com/ws-shevtsov/generator/issues
